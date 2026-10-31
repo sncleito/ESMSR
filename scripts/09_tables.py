@@ -118,38 +118,33 @@ def criteria(df, noise, runtime):
 
 def table_continuous(df, cfg, crit, P):
     levels = cfg["benchmark"]["table_levels"]
-    hdr = " & ".join(f"\\metric{{{c}}}\\,{ARROW[METRICS[c].direction]}" for c in TC)
-    lines = [r"\begin{table}[p]", r"\centering", r"\rotatebox{90}{%", r"\begin{minipage}{0.93\textheight}", r"\centering",
-             r"\caption{Continuous scores. Top: mean and standard deviation of each score over the instances of each family at two levels of degradation ($\lambda$ for F1 to F5 and F7, number $q$ of trapped agents per group for F6). Arrows indicate the direction of more segregated configurations. Bottom: summary of criteria E2, E3, E4 and E6 (Sect.~\ref{sec:criteria}). \metric{RE} applies only to radial configurations.}",
-             r"\label{tab:continuous}", r"\scriptsize", r"\begin{adjustbox}{max width=\linewidth}",
-             r"\begin{tabular}{l l *{14}{c}}", r"\toprule", f"\\textbf{{Family}} & \\textbf{{Level}} & {hdr} \\\\", r"\midrule"]
-    rows = []
+    lv = {}
     for f in FAMS:
         d = df[df.family == f]
-        lv_list = levels.get(f, levels["default"])
-        for i, lv in enumerate(lv_list):
-            if not len(d):
-                continue
-            lv_eff = nearest_level(d.level, lv)
-            e = d[np.isclose(d.level, lv_eff)]
-            lab = f"$q={int(lv_eff)}$" if f == "F6" else f"$\\lambda={lv_eff:g}$"
-            cells = []
-            for c in TC:
-                x = e[c + "_s"].dropna()
-                cells.append("--" if not len(x) else f"{x.mean():.2f}$\\pm${x.std(ddof=0):.2f}")
-                rows.append(dict(family=f, level=lv_eff, metric=c, mean=x.mean() if len(x) else np.nan,
-                                 sd=x.std(ddof=0) if len(x) else np.nan))
-            first = f"\\multirow{{2}}{{*}}{{\\textbf{{{f}}} {FAMILY_NAMES[f]}}}" if i == 0 else ""
-            lines.append(f"{first} & {lab} & " + " & ".join(cells) + r" \\")
-        lines.append(r"\addlinespace[1pt]")
-    lines.append(r"\midrule")
-    names = {"E2": "E2 Monotonicity, mean Spearman over families",
-             "E3": "E3 Change for one trapped agent per group (F6, \\% of range)",
-             "E4": "E4 Change under noise, largest $\\sigma$ (\\% of range)",
-             "E6": "E6 Runtime, $n \\approx 10^3$ (ms)"}
-    for k, nd in [("E2", 2), ("E3", 1), ("E4", 1), ("E6", 1)]:
-        lines.append(f"\\multicolumn{{2}}{{l}}{{{names[k]}}} & " + " & ".join(fmt(crit.loc[c, k], nd) for c in TC) + r" \\")
-    lines += [r"\bottomrule", r"\end{tabular}", r"\end{adjustbox}", r"\end{minipage}}", r"\end{table}"]
+        lv[f] = [nearest_level(d.level, x) for x in levels.get(f, levels["default"])] if len(d) else []
+    head = " & ".join(f"\\textbf{{{f}}}" for f in FAMS)
+    lines = [r"\begin{table}[htpb]", r"\centering",
+             r"\caption{Continuous scores. Left: mean score over the instances of each family at $\lambda = 0$ and $\lambda = 0.5$, separated by a slash (for F6, $q = 1$ and $q = 5$ trapped agents per group). Right: monotonicity (E2, mean Spearman correlation), change for one trapped agent per group (E3, \% of the range of the score), change under noise at $\sigma = 0.3$\,m (E4, \% of range) and running time for $n \approx 10^3$ (E6, ms). Arrows indicate the direction of more segregated values. \metric{RE} applies only to radial configurations.}",
+             r"\label{tab:continuous}", r"\scriptsize", r"\setlength{\tabcolsep}{3pt}",
+             r"\begin{adjustbox}{max width=\textwidth}", r"\begin{tabular}{l *{7}{c} @{\hspace{8pt}} *{4}{r}}", r"\toprule",
+             r" & \multicolumn{7}{c}{\textbf{Mean score at the two levels}} & \multicolumn{4}{c}{\textbf{Criteria}} \\",
+             r"\cmidrule(lr){2-8}\cmidrule(lr){9-12}",
+             f"\\textbf{{Metric}} & {head} & \\textbf{{E2}} & \\textbf{{E3}} & \\textbf{{E4}} & \\textbf{{E6}} " + r"\\", r"\midrule"]
+    rows = []
+    for c in TC:
+        cells = []
+        for f in FAMS:
+            d = df[df.family == f]
+            vals = []
+            for x in lv[f]:
+                v = d[np.isclose(d.level, x)][c + "_s"].dropna()
+                vals.append(v.mean() if len(v) else np.nan)
+                rows.append(dict(family=f, level=x, metric=c, mean=v.mean() if len(v) else np.nan,
+                                 sd=v.std(ddof=0) if len(v) else np.nan))
+            cells.append("--" if all(pd.isna(v) for v in vals) else "/".join(f"{v:.2f}" for v in vals))
+        crit_cells = [fmt(crit.loc[c, k], nd) for k, nd in [("E2", 2), ("E3", 1), ("E4", 1), ("E6", 1)]]
+        lines.append(f"\\metric{{{c}}}\\,{ARROW[METRICS[c].direction]} & " + " & ".join(cells + crit_cells) + r" \\")
+    lines += [r"\bottomrule", r"\end{tabular}", r"\end{adjustbox}", r"\end{table}"]
     (P["tables"] / "tab_continuous.tex").write_text("\n".join(lines) + "\n")
     pd.DataFrame(rows).to_csv(P["tables"] / "continuous_scores.csv", index=False)
     crit.to_csv(P["tables"] / "criteria.csv")

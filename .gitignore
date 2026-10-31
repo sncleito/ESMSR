@@ -6,3 +6,7 @@ tables/
 videos/
 logs/
 container/*.sif
+*venv
+venv/
+.vscode
+Python-RVO2/build/
