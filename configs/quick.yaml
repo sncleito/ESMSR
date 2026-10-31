@@ -1,0 +1,23 @@
+# Small configuration that runs the whole pipeline in minutes.
+benchmark:
+  m: [5]
+  nk: [30]
+  lambdas: [0.0, 0.25, 0.5, 0.75, 1.0]
+  f6_q: [0, 1, 5]
+  instances: 3
+noise:
+  realizations: 3
+  max_instances_per_cell: 2
+sensitivity:
+  max_instances: 40
+runtime:
+  n: [10, 30, 100, 300, 1000]
+  repeats: 2
+  time_budget_s: 5.0
+controllers:
+  runs: 1
+  sim_time: 8.0
+videos:
+  fps: 10
+  dpi: 80
+  lambda_sweep_families: [F1, F6]

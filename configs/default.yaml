@@ -1,0 +1,89 @@
+# Default configuration. Values follow Table 4 of the paper.
+seed: 2026
+robot_radius: 0.2          # r [m]
+rho_factor: 10.0           # rho = 10 r = 2 m (perception radius: CO, CEC and ground truth)
+cc_tau_factor: 4.2857      # tau = (0.3/0.07) r, the ratio used by Rezeck et al. (2021)
+spacing_factor: 4.0        # sampling density: one agent per (4r)^2 of area
+ring_gap_factor: 2.0       # gap between rings/arcs (F3, F4), in units of r
+arc_opening_deg: 60.0      # opening of the arcs of F4
+eps_area_rel: 1.0e-9       # zero-area tolerance relative to the largest region
+
+metrics:
+  concave_algorithm: moreira   # moreira | parkoh | geos
+  concave_k: 3
+  parkoh_concavity: 2.0
+  ellipse_confidence: 0.95
+  kmeans_n_init: 10
+  silhouette_max_n: 5000       # subsample above this size
+  mips:
+    n_windows: 8
+    w_min_factor: 2.0          # w_min = 2 r
+    w_max_frac: 0.25           # w_max = L / 4
+    grid_res_factor: 0.5       # histogram resolution = 0.5 r
+    n_uniform: 20              # realizations for the uniform normalization bound
+
+benchmark:
+  families: [F1, F2, F3, F4, F5, F6, F7]
+  m: [2, 3, 5, 10]
+  nk: [10, 30, 100]
+  lambdas: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+  f6_q: [0, 1, 2, 5, 10]       # trapped agents per group (F6), lambda = q / nk
+  instances: 30
+  table_levels:                # rows of Table 6
+    default: [0.0, 0.5]
+    F6: [1, 5]
+
+canonical:
+  pdf_dir: ../paper            # folder with 5g-c*.pdf and kumar_erro.pdf (script 00 only)
+  spacing_factor: 4.0          # calibration: median nearest-neighbour distance = 4 r
+
+noise:
+  sigma_fixed: 0.2             # protocol A: fixed sigma, varying fraction of noisy agents
+  fractions: [0.25, 0.5, 0.75, 1.0]
+  frac_fixed: 0.5              # protocol B: fixed fraction, varying sigma
+  sigmas: [0.0, 0.1, 0.2, 0.3]
+  realizations: 30
+  lambdas: [0.0]               # benchmark instances that receive noise
+  max_instances_per_cell: 10
+
+sensitivity:
+  rho_factors: [5.0, 7.5, 10.0, 15.0, 20.0]
+  cc_tau_factors: [2.0, 4.2857, 6.0, 10.0]
+  concave_k: [3, 5, 10, 20]
+  concave_algorithms: [moreira, parkoh]
+  ellipse_confidence: [0.68, 0.9, 0.95, 0.99]
+  mips_w_max_frac: [0.1, 0.25, 0.5]
+  max_instances: 400
+
+runtime:
+  n: [10, 30, 100, 300, 1000, 3000, 10000]
+  m: 5
+  repeats: 5
+  time_budget_s: 30.0          # stop timing a metric once one call exceeds this
+
+controllers:
+  names: [santos2020, mitrano2019, inacio2019, rezeck2021]
+  extra: [gradient]            # gradient-descent baseline of Rezeck et al. (2021)
+  runs: 30
+  robots: 150
+  groups: 5
+  world: 5.0                   # walls at +-world [m], as in the reference implementation
+  sim_time: 60.0               # simulated seconds
+  record_every: 0.5            # seconds between recorded frames
+  robot_radius: 0.07           # physical radius of the simulated robots [m]
+  rho_factor: 10.0             # rho = 10 r for these robots
+  cc_tau: 0.3                  # threshold of the reference ClusterMetric [m]
+  santos_velocity_sign: paper  # paper (damping, Eq. 2 of Santos et al.) | code (vgs_swarm.cpp)
+
+videos:
+  fps: 20
+  dpi: 110
+  controllers_runs: [0]
+  lambda_sweep_families: [F1, F3, F5, F6]
+
+paths:
+  data: data
+  results: results
+  figures: figures
+  tables: tables
+  videos: videos

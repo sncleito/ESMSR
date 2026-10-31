@@ -1,0 +1,21 @@
+# Dependencies only; the repository is mounted at run time. Build: ./run.sh build
+Bootstrap: docker
+From: python:3.12-slim-bookworm
+
+%files
+    requirements.txt /opt/requirements.txt
+
+%post
+    apt-get update
+    apt-get install -y --no-install-recommends build-essential git
+    pip install --no-cache-dir setuptools wheel cython cmake
+    pip install --no-cache-dir -r /opt/requirements.txt
+    git clone --depth 1 https://github.com/sybrenstuvel/Python-RVO2 /tmp/rvo2
+    cd /tmp/rvo2
+    CMAKE_POLICY_VERSION_MINIMUM=3.5 python setup.py build
+    pip install --no-cache-dir --no-build-isolation .
+    cd /
+    rm -rf /tmp/rvo2 /var/lib/apt/lists/*
+    apt-get purge -y build-essential git
+    apt-get autoremove -y
+    python -c "import numpy, scipy, sklearn, shapely, ripser, rvo2"
