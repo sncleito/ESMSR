@@ -1,22 +1,22 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite the paper below."
-title: "segbench: benchmark of segregation metrics for heterogeneous robot swarms"
+title: "Evaluation of Segregation Metrics in Swarm Robotics"
 version: 1.0.0
 authors:
   - family-names: Cruz
     given-names: Taynara L. M.
-  - family-names: Santos
-    given-names: Cleiton N.
+  - family-names: N. Santos
+    given-names: Cleiton
   - family-names: Macharet
     given-names: Douglas G.
 preferred-citation:
   type: article
-  title: "Measuring Segregation in Heterogeneous Robot Swarms: Formal Properties, Continuous Scores, and a Benchmark Evaluation"
+  title: "Evaluation of Segregation Metrics in Swarm Robotics"
   authors:
     - family-names: Cruz
       given-names: Taynara L. M.
-    - family-names: Santos
-      given-names: Cleiton N.
+    - family-names: N. Santos
+      given-names: Cleiton
     - family-names: Macharet
       given-names: Douglas G.
   journal: "Swarm Intelligence"
